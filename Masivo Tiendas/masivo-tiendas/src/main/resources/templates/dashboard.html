@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Masivo Tiendas</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid d-flex justify-content-between">
+            <span class="navbar-brand mb-0 h1">Masivo Tiendas 🕒</span>
+
+            <!-- Logout -->
+            <form th:action="@{/logout}" method="post" class="mb-0">
+                <button type="submit" class="btn btn-outline-light btn-sm">
+                    🚪 Salir
+                </button>
+            </form>
+        </div>
+    </nav>
+
+
+    <div class="container mb-5">
+
+        <!-- SELECCIÓN DE TIENDA -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Tienda base</h5>
+                <p class="card-text text-muted mb-2">
+                    Buscá tiendas escribiendo y seleccioná varias.
+                </p>
+
+                <div class="row g-2 align-items-center mb-2">
+                    <div class="col-md-6">
+                        <label for="tiendaSearchInput" class="form-label mb-1">Buscar tienda</label>
+                        <input type="text" id="tiendaSearchInput" class="form-control"
+                            placeholder="Ej: lanus, mar del plata..." oninput="filtrarTiendas()">
+                        <small class="text-muted">Ignora mayúsculas, minúsculas y acentos.</small>
+                    </div>
+                </div>
+
+                <div id="tiendaSearchResults" class="list-group mb-3" style="max-height: 200px; overflow-y: auto;">
+                </div>
+
+                <!-- Chips seleccionados -->
+                <div class="mb-3">
+                    <label class="form-label mb-1">Seleccionadas</label>
+                    <div id="tiendasSeleccionadasChips" class="d-flex flex-wrap gap-2">
+                        <span class="text-muted">Todavía no seleccionaste ninguna.</span>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        Tip: clickeá resultados para sumar. Clic en la ❌ para sacar.
+                    </small>
+                </div>
+
+                <!-- Select oculto (para mantener lista original, Thymeleaf) -->
+                <select id="tiendaSelect" class="form-select d-none">
+                    <option value="">-- Seleccionar tienda --</option>
+                    <option th:each="t : ${tiendas}" th:value="${t}" th:text="${t}"></option>
+                </select>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="limpiarSeleccionTiendas()">
+                        Limpiar selección
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- EDITOR DE HORARIOS -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Editar horarios masivos</h5>
+                <p class="card-text text-muted mb-3">
+                    Seleccioná días, horario y los types a los que querés aplicar el cambio.
+                </p>
+
+                <div class="row g-3">
+
+                    <!-- DÍAS -->
+                    <div class="col-md-4">
+                        <h6 class="mb-2">Días a modificar</h6>
+                        <div id="diasContainer" class="border rounded p-2 bg-light">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="lunes"
+                                    id="dia_lun">
+                                <label class="form-check-label" for="dia_lun">lunes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="martes"
+                                    id="dia_mar">
+                                <label class="form-check-label" for="dia_mar">martes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="miercoles"
+                                    id="dia_mie">
+                                <label class="form-check-label" for="dia_mie">miercoles</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="jueves"
+                                    id="dia_jue">
+                                <label class="form-check-label" for="dia_jue">jueves</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="viernes"
+                                    id="dia_vie">
+                                <label class="form-check-label" for="dia_vie">viernes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="sabado"
+                                    id="dia_sab">
+                                <label class="form-check-label" for="dia_sab">sabado</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="diaCheck" value="domingo"
+                                    id="dia_dom">
+                                <label class="form-check-label" for="dia_dom">domingo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HORARIOS -->
+                    <div class="col-md-4">
+                        <h6 class="mb-2">Horario</h6>
+                        <small class="text-muted">
+                            Horarios en saltos de 15 minutos (00:00 a 23:59)
+                        </small>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label for="inicioInput" class="form-label">Inicio</label>
+                                <input type="time" id="inicioInput" class="form-control" value="00:00" min="00:00"
+                                    max="23:59" step="900" />
+                            </div>
+                            <div class="col-6">
+                                <label for="finInput" class="form-label">Fin</label>
+                                <input type="time" id="finInput" class="form-control" value="00:00" min="00:00"
+                                    max="23:59" step="900" />
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            Si el fin es menor al inicio, se corta a las 23:59:59 y sigue al día siguiente 00:00–fin
+                            (solo en vista/CSV).
+                        </small>
+                    </div>
+
+                    <!-- TYPES -->
+                    <div class="col-md-4">
+                        <h6 class="mb-2">Types a modificar</h6>
+                        <div id="typesContainer" class="border rounded p-2 bg-light"
+                            style="max-height: 200px; overflow-y: auto;">
+                            <p class="text-muted mb-0" style="font-style: italic;">Cargá una tienda para ver sus
+                                types...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button type="button" class="btn btn-success" onclick="aplicarCambios()">
+                        Aplicar cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTADO + CSV -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">Resultado</h5>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="descargarCSV()">
+                        Descargar CSV
+                    </button>
+                </div>
+                <p class="card-text text-muted">
+                    Vista previa de los horarios que se van a exportar.
+                </p>
+
+                <div id="resultado">
+                    <p class="text-muted">Elegí una tienda y apretá <strong>Cargar tienda</strong> para ver sus types y
+                        horarios.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===================== JS ===================== -->
+    <script th:inline="none">
+        // Datos actuales (ahora puede ser merge de varias tiendas)
+        let currentData = null;
+        let currentStoreName = null;
+
+        // Lista total de tiendas (desde el <select> oculto)
+        let allTiendas = [];
+
+        // Seleccionadas (multi)
+        let selectedTiendas = [];
+
+        // ===== UI chips =====
+        function renderSelectedChips() {
+            const cont = document.getElementById("tiendasSeleccionadasChips");
+            cont.innerHTML = "";
+
+            if (selectedTiendas.length === 0) {
+                cont.innerHTML = '<span class="text-muted">Todavía no seleccionaste ninguna.</span>';
+                return;
+            }
+
+            selectedTiendas.forEach(function (t) {
+                const chip = document.createElement("span");
+                chip.className = "badge rounded-pill text-bg-primary d-flex align-items-center gap-2";
+                chip.style.padding = "0.5rem 0.75rem";
+                chip.style.fontSize = "0.9rem";
+
+                const text = document.createElement("span");
+                text.textContent = t;
+
+                const x = document.createElement("button");
+                x.type = "button";
+                x.className = "btn btn-sm btn-light";
+                x.textContent = "✕";
+                x.style.lineHeight = "1";
+                x.style.padding = "0 0.4rem";
+                x.onclick = function () {
+                    selectedTiendas = selectedTiendas.filter(s => s !== t);
+                    renderSelectedChips();
+                    scheduleAutoPreview();
+                };
+
+                chip.appendChild(text);
+                chip.appendChild(x);
+                cont.appendChild(chip);
+            });
+        }
+
+        function limpiarSeleccionTiendas() {
+            // Limpia selección y UI buscador
+            selectedTiendas = [];
+            renderSelectedChips();
+            document.getElementById("tiendaSearchResults").innerHTML = "";
+            document.getElementById("tiendaSearchInput").value = "";
+
+            // Limpia preview
+            currentData = null;
+            currentStoreName = null;
+
+            document.getElementById("typesContainer").innerHTML =
+                '<p class="text-muted mb-0" style="font-style: italic;">Cargá una tienda para ver sus types...</p>';
+
+            document.getElementById("resultado").innerHTML =
+                '<p class="text-muted">Seleccioná una o más tiendas para ver sus types y horarios.</p>';
+
+            scheduleAutoPreview();
+        }
+
+        // ===== Orden de días + CSV =====
+        const ordenDias = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+
+        const dayToCsv = {
+            "lunes": "mon",
+            "martes": "tue",
+            "miercoles": "wed",
+            "jueves": "thu",
+            "viernes": "fri",
+            "sabado": "sat",
+            "domingo": "sun"
+        };
+
+        function getNextDay(dia) {
+            const idx = ordenDias.indexOf(dia);
+            return ordenDias[(idx + 1) % ordenDias.length];
+        }
+
+        // Quitar acentos y pasar a minúsculas
+        function normalizeText(str) {
+            return str
+                .toString()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+        }
+
+        function initTiendas() {
+            const select = document.getElementById("tiendaSelect");
+            const opts = select.options;
+            allTiendas = [];
+            for (let i = 0; i < opts.length; i++) {
+                const val = opts[i].value;
+                if (val) allTiendas.push(val);
+            }
+            renderSelectedChips();
+        }
+
+        function filtrarTiendas() {
+            const input = document.getElementById("tiendaSearchInput");
+            const query = normalizeText(input.value || "");
+            const container = document.getElementById("tiendaSearchResults");
+            container.innerHTML = "";
+
+            if (!query) return;
+
+            const matches = allTiendas
+                .filter(t => normalizeText(t).includes(query))
+                .slice(0, 50);
+
+            if (matches.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "list-group-item text-muted";
+                empty.textContent = "Sin resultados";
+                container.appendChild(empty);
+                return;
+            }
+
+            matches.forEach(function (t) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+
+                const ya = selectedTiendas.includes(t);
+                btn.className = "list-group-item list-group-item-action d-flex justify-content-between align-items-center";
+                btn.innerHTML = `<span>${t}</span>` + (ya ? `<span class="badge text-bg-success">Agregada</span>` : ``);
+
+                btn.onclick = function () {
+                    if (!selectedTiendas.includes(t)) {
+                        selectedTiendas.push(t);
+                        renderSelectedChips();
+                    }
+                    filtrarTiendas();
+                    scheduleAutoPreview();
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
+        // ===== Types =====
+        function renderTypesCheckboxes(data) {
+            let html = "";
+            for (let type in data) {
+                html +=
+                    '<div class="form-check">' +
+                    '  <input class="form-check-input" type="checkbox" name="typeCheck" value="' + type + '" id="type_' + type + '">' +
+                    '  <label class="form-check-label" for="type_' + type + '">' + type + '</label>' +
+                    '</div>';
+            }
+
+            document.getElementById("typesContainer").innerHTML = html || '<p class="text-muted mb-0">Sin types</p>';
+        }
+
+        // ===== Expandir cruces para vista/CSV =====
+        function expandRowsForDisplay(rows) {
+            const expanded = [];
+
+            rows.forEach(function (row) {
+                const dia = row.day.toLowerCase();
+                const start = row.startTime;
+                const end = row.endTime;
+
+                if (start <= end) {
+                    expanded.push({ day: dia, startTime: start, endTime: end });
+                } else {
+                    const nextDay = getNextDay(dia);
+                    expanded.push({ day: dia, startTime: start, endTime: "23:59:59" });
+                    expanded.push({ day: nextDay, startTime: "00:00:00", endTime: end });
+                }
+            });
+
+            return expanded;
+        }
+
+        // ===== Tabla =====
+        function mostrarTabla(data) {
+            let html = "";
+
+            for (let type in data) {
+                html += '<h6 class="mt-3 mb-2">Type: <span class="badge bg-secondary">' + type + '</span></h6>';
+
+                html += '' +
+                    '<div class="table-responsive">' +
+                    '<table class="table table-sm table-striped align-middle">' +
+                    '  <thead class="table-light">' +
+                    '    <tr>' +
+                    '      <th style="width: 30%;">Día</th>' +
+                    '      <th style="width: 35%;">Inicio</th>' +
+                    '      <th style="width: 35%;">Fin</th>' +
+                    '    </tr>' +
+                    '  </thead>' +
+                    '  <tbody>';
+
+                let filasExpand = expandRowsForDisplay(data[type]);
+
+                filasExpand.sort(function (a, b) {
+                    const diffDia = ordenDias.indexOf(a.day) - ordenDias.indexOf(b.day);
+                    if (diffDia !== 0) return diffDia;
+                    return a.startTime.localeCompare(b.startTime);
+                });
+
+                for (let i = 0; i < filasExpand.length; i++) {
+                    const row = filasExpand[i];
+                    html +=
+                        '  <tr>' +
+                        '    <td>' + row.day + '</td>' +
+                        '    <td><code>' + row.startTime + '</code></td>' +
+                        '    <td><code>' + row.endTime + '</code></td>' +
+                        '  </tr>';
+                }
+
+                html += '  </tbody></table></div>';
+            }
+
+            document.getElementById("resultado").innerHTML = html || '<p class="text-muted">Sin datos para mostrar</p>';
+        }
+
+        // ===== aplicarCambios (OJO: aún no es multi-store perfecto) =====
+        function aplicarCambios() {
+            if (!currentData) {
+                alert("Primero cargá una tienda");
+                return;
+            }
+
+            const diasChecks = document.querySelectorAll('input[name="diaCheck"]:checked');
+            if (diasChecks.length === 0) {
+                alert("Seleccioná al menos un día");
+                return;
+            }
+            const diasSeleccionados = Array.prototype.map.call(diasChecks, function (c) {
+                return c.value;
+            });
+
+            let inicio = document.getElementById("inicioInput").value;
+            let fin = document.getElementById("finInput").value;
+
+            if (!inicio || !fin) {
+                alert("Completá horario de inicio y fin");
+                return;
+            }
+
+            inicio = inicio + ":00";
+            fin = fin + ":00";
+
+            const checksTypes = document.querySelectorAll('input[name="typeCheck"]:checked');
+            if (checksTypes.length === 0) {
+                alert("Seleccioná al menos un type");
+                return;
+            }
+            const typesSeleccionados = Array.prototype.map.call(checksTypes, function (c) {
+                return c.value;
+            });
+
+            const cruzaMedianoche = fin < inicio;
+
+            typesSeleccionados.forEach(function (type) {
+                let filas = currentData[type] || [];
+                if (filas.length === 0) return;
+
+                const plantilla = filas[0]; // ⚠️ si hay multi-store, esto después lo mejoramos
+
+                let nuevasFilas = filas.slice();
+
+                diasSeleccionados.forEach(function (dia) {
+                    const diaLower = dia.toLowerCase();
+                    const diaSiguiente = getNextDay(diaLower);
+
+                    nuevasFilas = nuevasFilas.filter(function (r) {
+                        return r.day.toLowerCase() !== diaLower;
+                    });
+
+                    if (cruzaMedianoche) {
+                        nuevasFilas = nuevasFilas.filter(function (r) {
+                            return !(
+                                r.day.toLowerCase() === diaSiguiente &&
+                                r.startTime === "00:00:00"
+                            );
+                        });
+                    }
+
+                    nuevasFilas.push({
+                        storeId: plantilla.storeId,
+                        day: diaLower,
+                        startTime: inicio,
+                        endTime: fin,
+                        tiendaPadre: plantilla.tiendaPadre,
+                        type: plantilla.type
+                    });
+                });
+
+                currentData[type] = nuevasFilas;
+            });
+
+            mostrarTabla(currentData);
+        }
+
+        // ===== CSV =====
+        function descargarCSV() {
+            if (!currentData) {
+                alert("Primero cargá una tienda");
+                return;
+            }
+
+            let lineas = ["store_id,days,start_time,end_time"];
+
+            for (let type in currentData) {
+                let filasExpand = expandRowsForDisplay(currentData[type]);
+
+                filasExpand.sort(function (a, b) {
+                    const diffDia = ordenDias.indexOf(a.day) - ordenDias.indexOf(b.day);
+                    if (diffDia !== 0) return diffDia;
+                    return a.startTime.localeCompare(b.startTime);
+                });
+
+                for (let i = 0; i < filasExpand.length; i++) {
+                    const row = filasExpand[i];
+                    const diaCsv = dayToCsv[row.day];
+                    if (!diaCsv) continue;
+
+                    const anyRow = currentData[type][0];
+
+                    const linea = [
+                        anyRow.storeId,
+                        diaCsv,
+                        row.startTime,
+                        row.endTime
+                    ].join(",");
+
+                    lineas.push(linea);
+                }
+            }
+
+            if (lineas.length === 0) {
+                alert("No hay filas para exportar");
+                return;
+            }
+
+            const csvContent = lineas.join("\n");
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+
+            const safeName = (currentStoreName || "tienda").replace(/[^a-zA-Z0-9_\-]/g, "_");
+            link.download = "masivo_" + safeName + ".csv";
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            URL.revokeObjectURL(url);
+        }
+
+        // ===== Auto Preview (multi tienda real) =====
+        async function cargarTiendasSeleccionadas() {
+            await updatePreviewFromSelection();
+        }
+
+        let autoLoadTimer = null;
+
+        function scheduleAutoPreview() {
+            if (autoLoadTimer) clearTimeout(autoLoadTimer);
+            autoLoadTimer = setTimeout(async () => {
+                await updatePreviewFromSelection();
+            }, 200);
+        }
+
+        async function updatePreviewFromSelection() {
+            if (!selectedTiendas || selectedTiendas.length === 0) {
+                currentData = null;
+                currentStoreName = null;
+
+                document.getElementById("typesContainer").innerHTML =
+                    '<p class="text-muted mb-0" style="font-style: italic;">Cargá una tienda para ver sus types...</p>';
+
+                document.getElementById("resultado").innerHTML =
+                    '<p class="text-muted">Seleccioná una o más tiendas para ver sus types y horarios.</p>';
+
+                return;
+            }
+
+            document.getElementById("resultado").innerHTML =
+                '<p class="text-muted">Cargando vista previa de <strong>' + selectedTiendas.length + '</strong> tienda(s)...</p>';
+
+            const responses = await Promise.all(
+                selectedTiendas.map(async (tienda) => {
+                    const res = await fetch("/api/tienda/" + encodeURIComponent(tienda));
+                    if (!res.ok) {
+                        return { tienda, ok: false, data: null };
+                    }
+                    const data = await res.json();
+                    return { tienda, ok: true, data };
+                })
+            );
+
+            const fallidas = responses.filter(r => !r.ok).map(r => r.tienda);
+            const okOnes = responses.filter(r => r.ok);
+
+            if (okOnes.length === 0) {
+                document.getElementById("resultado").innerHTML =
+                    '<p class="text-danger">No pude cargar ninguna tienda seleccionada.</p>';
+                return;
+            }
+
+            const merged = {}; // { type: [rows...] }
+
+            okOnes.forEach(({ data }) => {
+                for (let type in data) {
+                    if (!merged[type]) merged[type] = [];
+                    merged[type] = merged[type].concat(data[type]);
+                }
+            });
+
+            currentData = merged;
+            currentStoreName = "multi_" + okOnes.length + "_tiendas";
+
+            renderTypesCheckboxes(currentData);
+            mostrarTabla(currentData);
+
+            if (fallidas.length > 0) {
+                const warn = document.createElement("div");
+                warn.className = "alert alert-warning mt-2";
+                warn.innerHTML =
+                    "<strong>Ojo:</strong> no se pudieron cargar estas tiendas: <code>" +
+                    fallidas.join("</code>, <code>") +
+                    "</code>";
+
+                const resultadoDiv = document.getElementById("resultado");
+                resultadoDiv.prepend(warn);
+            }
+        }
+
+        // Inicializamos lista de tiendas al cargar la página
+        window.addEventListener("DOMContentLoaded", initTiendas);
+    </script>
+
+</body>
+
+</html>
