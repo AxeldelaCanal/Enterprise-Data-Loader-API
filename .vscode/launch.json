@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-MasivoTiendasApplication<masivo-tiendas>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.axel.masivo_tiendas.MasivoTiendasApplication",
+            "projectName": "masivo-tiendas",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

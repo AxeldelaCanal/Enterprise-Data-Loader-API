@@ -16,16 +16,15 @@ public class SecurityConfig {
             // Más adelante podemos activarlo si querés hacerlo más estricto.
             .csrf(csrf -> csrf.disable())
 
-            // Todo requiere login
+            // Permitir acceso a todas las rutas sin autenticación
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
 
-            // Login form default
-            .formLogin(Customizer.withDefaults())
-
-            // Logout default
-            .logout(Customizer.withDefaults());
+            // Desactivar formulario de login y auth por defecto
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .logout(logout -> logout.disable());
 
         return http.build();
     }

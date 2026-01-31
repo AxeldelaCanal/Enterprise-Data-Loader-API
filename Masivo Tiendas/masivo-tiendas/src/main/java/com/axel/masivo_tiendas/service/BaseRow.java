@@ -1,15 +1,11 @@
 package com.axel.masivo_tiendas.service;
 
-import lombok.Builder;  
-import lombok.Data;
-
-@Data
-@Builder
-public class BaseRow{
-    private String storeId;
-    private String day;
-    private String startTime;
-    private String endTime;
-    private String tiendaPadre;
-    private String type;
+/**
+ * Deprecated placeholder. Use {@code com.axel.masivo_tiendas.model.BaseRow} instead.
+ */
+@Deprecated
+public final class BaseRow {
+    private BaseRow() {
+        throw new UnsupportedOperationException("Use com.axel.masivo_tiendas.model.BaseRow instead.");
+    }
 }

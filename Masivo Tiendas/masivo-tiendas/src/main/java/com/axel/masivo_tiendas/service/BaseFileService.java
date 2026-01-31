@@ -1,13 +1,17 @@
 package com.axel.masivo_tiendas.service;
 
 import com.axel.masivo_tiendas.model.BaseRow;
+import com.axel.masivo_tiendas.util.TimeUtils;
 import jakarta.annotation.PostConstruct;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,6 +20,8 @@ public class BaseFileService {
 
     // Lista con TODAS las filas del Excel (convertidas a BaseRow)
     private final List<BaseRow> allRows = new ArrayList<>();
+
+    private static final Logger log = LoggerFactory.getLogger(BaseFileService.class);
 
     // Mapa: "Baez" -> lista de filas de Baez
     private Map<String, List<BaseRow>> rowsByTienda = new HashMap<>();
@@ -57,7 +63,7 @@ public class BaseFileService {
                 Map<String, Integer> colIndex = mapColumns(headerRow);
 
                 if (colIndex.isEmpty()) {
-                    System.out.println("❌ No se encontraron columnas esperadas en el archivo base");
+                    log.error("No se encontraron columnas esperadas en el archivo base");
                     return;
                 }
 
@@ -69,22 +75,32 @@ public class BaseFileService {
                     // 7) Leemos cada celda según la columna que detectamos
                     String storeId     = getCellString(row, colIndex.get("store_id"));
                     String day         = getCellString(row, colIndex.get("days"));
-                    String startTime   = getCellString(row, colIndex.get("start_time"));
-                    String endTime     = getCellString(row, colIndex.get("end_time"));
+                    LocalTime startTime = null;
+                    LocalTime endTime = null;
+                    Integer startIdx = colIndex.get("start_time");
+                    Integer endIdx = colIndex.get("end_time");
+                    if (startIdx != null) {
+                        Cell c = row.getCell(startIdx);
+                        startTime = TimeUtils.fromCell(c);
+                    }
+                    if (endIdx != null) {
+                        Cell c = row.getCell(endIdx);
+                        endTime = TimeUtils.fromCell(c);
+                    }
                     String tiendaPadre = getCellString(row, colIndex.get("tienda_padre"));
                     String type        = getCellString(row, colIndex.get("type"));
 
-                    // Si faltan datos importantes, no la usamos
-                    if (storeId == null || day == null || tiendaPadre == null || type == null) {
+                        // Si faltan datos importantes, no la usamos
+                        if (storeId == null || day == null || tiendaPadre == null || type == null) {
                         continue;
                     }
 
                     // 8) Creamos un objeto BaseRow con los datos de esa fila
-                    BaseRow baseRow = BaseRow.builder()
+                        BaseRow baseRow = BaseRow.builder()
                             .storeId(storeId.trim())
                             .day(day.trim())
-                            .startTime(startTime != null ? startTime.trim() : null)
-                            .endTime(endTime != null ? endTime.trim() : null)
+                            .startTime(startTime)
+                            .endTime(endTime)
                             .tiendaPadre(tiendaPadre.trim())
                             .type(type.trim())
                             .build();
@@ -96,13 +112,12 @@ public class BaseFileService {
                 rowsByTienda = allRows.stream()
                         .collect(Collectors.groupingBy(BaseRow::getTiendaPadre));
 
-                System.out.println("✅ Archivo base cargado. Filas totales: " + allRows.size());
-                System.out.println("✅ Tiendas padre encontradas: " + rowsByTienda.keySet());
+                log.info("Archivo base cargado. Filas totales: {}", allRows.size());
+                log.info("Tiendas padre encontradas: {}", rowsByTienda.keySet());
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error leyendo archivo masivo_tiendas.xlsx");
-            e.printStackTrace();
+            log.error("Error leyendo archivo masivo_tiendas.xlsx", e);
         }
     }
 
