@@ -58,5 +58,4 @@ El proyecto incluye un docker-compose.yml que levanta la API y la base de datos 
 Si prefieres correrlo localmente:
 
 1. Configura tu base de datos en application.properties.
-
-2.  Ejecuta:
+2. Ejecuta:
