@@ -54,6 +54,7 @@ El proyecto incluye un docker-compose.yml que levanta la API y la base de datos 
 
 ### 3. Ejecutar manualmente (Dev Mode)
 Si prefieres correrlo localmente:
+
     1. Configura tu base de datos en application.properties.
     2. Ejecuta:
     `mvn spring-boot:run`
