@@ -1,67 +1,50 @@
-# 🏭 Enterprise Data Loader API
+# ⚡ Enterprise Data Loader API (Excel-to-Rest Adapter)
 
-> **API REST de alto rendimiento para la orquestación y validación de cargas masivas de datos operativos.**
-> Diseñada para optimizar procesos logísticos en entornos de Quick-Commerce.
+> **Microservicio de transformación y orquestación de datos operativos.**
+> Ingesta configuraciones complejas en Excel (.xlsx) y las expone como una API REST de alta velocidad (In-Memory Access) para sistemas de Quick-Commerce.
 
-![Java 17](https://img.shields.io/badge/Java-17-orange?logo=openjdk)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-green?logo=springboot)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
-![Status](https://img.shields.io/badge/Status-Production_Grade-success)
-
----
-
-## 💡 Contexto del Negocio
-
-En operaciones logísticas de alta demanda (Quick-Commerce / Dark Stores), la actualización manual de inventarios y horarios suele ser el mayor punto de fallo. Los errores humanos en archivos CSV provocan interrupciones en el servicio.
-
-Este proyecto fue desarrollado como una **Herramienta Interna (Internal Tool)** para resolver ese problema. Actúa como un *middleware* de validación estricta antes de que los datos toquen la base de datos operativa.
-
-### 🚀 Impacto Operativo
-* **Reducción del 40%** en errores de carga manual.
-* **Validación anticipada:** El sistema rechaza archivos corruptos antes de procesarlos, ahorrando horas de corrección de datos.
-* **Auditoría:** Trazabilidad completa de quién cargó qué y cuándo.
+![Java 21](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
+![Spring Boot 3](https://img.shields.io/badge/Spring_Boot-3.x-green?logo=springboot)
+![Apache POI](https://img.shields.io/badge/Excel_Processing-Apache_POI-blue)
+![Security](https://img.shields.io/badge/Spring_Security-Configured-red)
 
 ---
 
-## 🛠️ Arquitectura y Tech Stack
+## 💡 El Problema de Negocio
+En operaciones de Quick-Commerce, los equipos comerciales gestionan horarios y configuraciones de tiendas ("Dark Stores") utilizando hojas de cálculo masivas (Excel).
+Sincronizar estos Excels con las plataformas tecnológicas suele ser un proceso manual propenso a errores.
 
-El sistema sigue una arquitectura por capas (Layered Architecture) para garantizar la separación de responsabilidades y la escalabilidad.
-
-* **Lenguaje:** Java 17
-* **Framework:** Spring Boot 3 (Web, Data JPA)
-* **Base de Datos:** MySQL 8
-* **Containerización:** Docker & Docker Compose
-* **Herramientas:** Lombok, Maven, Postman (para pruebas de integración)
-
-### Patrones de Diseño Implementados
-* **DTO Pattern:** Para desacoplar la capa de persistencia de la API pública.
-* **Repository Pattern:** Abstracción del acceso a datos.
-* **Global Exception Handling:** Uso de `@ControllerAdvice` para normalizar los errores HTTP y entregar respuestas JSON claras al cliente.
-* **Strategy Pattern (Implícito):** Para validar diferentes tipos de reglas de negocio según la entidad cargada (Stock vs. Horarios).
+## 🛠️ La Solución Técnica
+Este servicio actúa como un **Middleware de Adaptación**:
+1.  **Ingesta Automática:** Lee y procesa archivos `.xlsx` complejos al iniciar el servicio.
+2.  **Normalización Dinámica:** Un algoritmo inteligente detecta columnas independientemente de variaciones en el nombre (ej: "Store ID" vs "store_id").
+3.  **High-Performance Serving:** Almacena los datos procesados en memoria (Heap), permitiendo tiempos de respuesta de **<10ms** para consultas de operación en tiempo real.
 
 ---
 
-## ✨ Funcionalidades Clave
+## 🏗️ Arquitectura del Sistema
 
-1.  **Carga Masiva Asíncrona (Simulada):** Capacidad para procesar grandes volúmenes de registros sin bloquear el hilo principal.
-2.  **Validación de Reglas de Negocio:**
-    * Verificación de integridad referencial (IDs de tiendas existentes).
-    * Validación de formatos de fecha y tipos de datos numéricos.
-    * Detección de duplicados lógicos.
-3.  **Respuesta de Errores Granular:**
-    * Si una fila del CSV falla, la API devuelve el número exacto de fila y la razón del error, permitiendo al operador corregirlo rápidamente.
-4.  **Endpoint de Health Check:** Para monitoreo en entornos de nube.
+### Tech Stack
+* **Core:** Java 21 (LTS) & Spring Boot 3.
+* **Data Processing:** Apache POI 5.x (Para parsing avanzado de Office Open XML).
+* **API Layer:** Spring Web MVC.
+* **Security:** Spring Security (CSRF disabled para APIs internas).
+* **Tools:** Lombok (Boilerplate reduction), Maven.
+
+### Patrones de Diseño Detectados
+* **Singleton Service:** `BaseFileService` mantiene el estado único de los datos en memoria.
+* **Strategy / Normalizer:** Lógica de mapeo de columnas flexible en `mapColumns()` para tolerar errores de entrada humana en los Excels.
+* **Eager Loading:** Uso de `@PostConstruct` para garantizar que los datos estén validados y listos antes de aceptar la primera petición HTTP.
 
 ---
 
-## 🔧 Instalación y Ejecución
+## 🚀 Instalación y Ejecución
 
 ### Prerrequisitos
-* Java 17 JDK
-* Maven
-* Docker (Opcional, pero recomendado)
+* JDK 21 instalado.
+* Maven 3.8+.
 
-### 1. Clonar el repositorio
+### 1. Clonar
 ```bash
-git clone [https://github.com/AxeldelaCanal/enterprise-data-loader.git](https://github.com/AxeldelaCanal/enterprise-data-loader.git)
-cd enterprise-data-loader
+git clone [https://github.com/AxeldelaCanal/Masivo-Tiendas.git](https://github.com/AxeldelaCanal/Masivo-Tiendas.git)
+cd masivo-tiendas
