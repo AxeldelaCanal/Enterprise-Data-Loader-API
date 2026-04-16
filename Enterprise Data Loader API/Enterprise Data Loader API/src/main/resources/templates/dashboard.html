@@ -3,17 +3,36 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Masivo Tiendas</title>
-    <!-- Bootstrap 5 -->
+    <title>Enterprise Data Loader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f1f3f5; }
+        .navbar { border-bottom: 3px solid #0d6efd; }
+        .card { border: none; border-radius: 10px; }
+        .card-title { font-weight: 600; font-size: .95rem; color: #212529; }
+        .day-toggle { display: flex; flex-wrap: wrap; gap: .4rem; }
+        .day-toggle .btn-check + label { min-width: 4rem; text-align: center; font-size: .82rem; font-weight: 500; }
+    </style>
 </head>
 
 <body class="bg-light">
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="appToast" class="toast align-items-center border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body fw-500" id="toastMsg"></div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container-fluid d-flex justify-content-between">
-            <span class="navbar-brand mb-0 h1">Masivo Tiendas 🕒</span>
-            <div></div>
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-building me-2"></i>Enterprise Data Loader
+            </span>
         </div>
     </nav>
 
@@ -79,43 +98,25 @@
 
                     <!-- DÍAS -->
                     <div class="col-md-4">
-                        <h6 class="mb-2">Días a modificar</h6>
-                        <div id="diasContainer" class="border rounded p-2 bg-light">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="lunes"
-                                    id="dia_lun">
-                                <label class="form-check-label" for="dia_lun">lunes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="martes"
-                                    id="dia_mar">
-                                <label class="form-check-label" for="dia_mar">martes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="miercoles"
-                                    id="dia_mie">
-                                <label class="form-check-label" for="dia_mie">miercoles</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="jueves"
-                                    id="dia_jue">
-                                <label class="form-check-label" for="dia_jue">jueves</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="viernes"
-                                    id="dia_vie">
-                                <label class="form-check-label" for="dia_vie">viernes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="sabado"
-                                    id="dia_sab">
-                                <label class="form-check-label" for="dia_sab">sabado</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="diaCheck" value="domingo"
-                                    id="dia_dom">
-                                <label class="form-check-label" for="dia_dom">domingo</label>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Días a modificar</h6>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="toggleTodosDias()">Todos</button>
+                        </div>
+                        <div class="day-toggle" id="diasContainer">
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="lunes" id="dia_lun">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_lun">Lun</label>
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="martes" id="dia_mar">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_mar">Mar</label>
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="miercoles" id="dia_mie">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_mie">Mié</label>
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="jueves" id="dia_jue">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_jue">Jue</label>
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="viernes" id="dia_vie">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_vie">Vie</label>
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="sabado" id="dia_sab">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_sab">Sáb</label>
+                            <input class="btn-check" type="checkbox" name="diaCheck" value="domingo" id="dia_dom">
+                            <label class="btn btn-outline-secondary btn-sm" for="dia_dom">Dom</label>
                         </div>
                     </div>
 
@@ -411,15 +412,28 @@
         }
 
         // ===== aplicarCambios (OJO: aún no es multi-store perfecto) =====
+        function showToast(msg, type) {
+            const el = document.getElementById("appToast");
+            el.className = "toast align-items-center border-0 text-bg-" + (type || "danger");
+            document.getElementById("toastMsg").textContent = msg;
+            bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
+        }
+
+        function toggleTodosDias() {
+            const checks = document.querySelectorAll('input[name="diaCheck"]');
+            const allChecked = Array.from(checks).every(c => c.checked);
+            checks.forEach(c => c.checked = !allChecked);
+        }
+
         function aplicarCambios() {
             if (!currentData) {
-                alert("Primero cargá una tienda");
+                showToast("Primero cargá una tienda");
                 return;
             }
 
             const diasChecks = document.querySelectorAll('input[name="diaCheck"]:checked');
             if (diasChecks.length === 0) {
-                alert("Seleccioná al menos un día");
+                showToast("Seleccioná al menos un día");
                 return;
             }
             const diasSeleccionados = Array.prototype.map.call(diasChecks, function (c) {
@@ -439,7 +453,7 @@
 
             const checksTypes = document.querySelectorAll('input[name="typeCheck"]:checked');
             if (checksTypes.length === 0) {
-                alert("Seleccioná al menos un type");
+                showToast("Seleccioná al menos un type");
                 return;
             }
             const typesSeleccionados = Array.prototype.map.call(checksTypes, function (c) {
@@ -492,7 +506,7 @@
         // ===== CSV =====
         function descargarCSV() {
             if (!currentData) {
-                alert("Primero cargá una tienda");
+                showToast("Primero cargá una tienda");
                 return;
             }
 
@@ -577,7 +591,7 @@
             }
 
             document.getElementById("resultado").innerHTML =
-                '<p class="text-muted">Cargando vista previa de <strong>' + selectedTiendas.length + '</strong> tienda(s)...</p>';
+                '<div class="d-flex align-items-center gap-2 text-muted py-2"><div class="spinner-border spinner-border-sm"></div>Cargando ' + selectedTiendas.length + ' tienda(s)…</div>';
 
             const responses = await Promise.all(
                 selectedTiendas.map(async (tienda) => {
@@ -630,6 +644,7 @@
         // Inicializamos lista de tiendas al cargar la página
         window.addEventListener("DOMContentLoaded", initTiendas);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
