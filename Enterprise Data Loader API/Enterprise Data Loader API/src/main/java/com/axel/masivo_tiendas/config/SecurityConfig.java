@@ -12,19 +12,12 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Para tu caso (form + fetch simple), es práctico desactivar CSRF.
-            // Más adelante podemos activarlo si querés hacerlo más estricto.
             .csrf(csrf -> csrf.disable())
-
-            // Permitir acceso a todas las rutas sin autenticación
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
+                .requestMatchers("/", "/actuator/health").permitAll()
+                .anyRequest().authenticated()
             )
-
-            // Desactivar formulario de login y auth por defecto
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
-            .logout(logout -> logout.disable());
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

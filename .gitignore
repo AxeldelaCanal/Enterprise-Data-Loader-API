@@ -1,0 +1,12 @@
+# Editor
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+
+# Env
+.env
+
+# Build
+target/

@@ -46,17 +46,28 @@ Este servicio actúa como un **Middleware de Adaptación**:
 
 ### 1. Clonar
 
-`git clone [https://github.com/AxeldelaCanal/Masivo-Tiendas.git](https://github.com/AxeldelaCanal/Masivo-Tiendas.git)
-cd masivo-tiendas`
+```bash
+git clone https://github.com/AxeldelaCanal/Enterprise-Data-Loader-API.git
+cd Enterprise-Data-Loader-API/Enterprise\ Data\ Loader\ API/Enterprise\ Data\ Loader\ API
+```
 
-### 2. Ejecutar con Docker (Recomendado)
-El proyecto incluye un docker-compose.yml que levanta la API y la base de datos MySQL automáticamente.
+### 2. Configurar credenciales
 
-`docker-compose up --build`
+La API usa **HTTP Basic Auth**. Seteá las variables de entorno antes de correr:
 
-### 3. Ejecutar manualmente (Dev Mode)
-Si prefieres correrlo localmente:
+```bash
+export APP_USER=admin
+export APP_PASSWORD=tu_password
+```
 
-1. Configura tu base de datos en `application.properties`.
-2. Ejecuta:
-   `mvn spring-boot:run`
+> En Windows (PowerShell): `$env:APP_USER="admin"` / `$env:APP_PASSWORD="tu_password"`
+
+### 3. Ejecutar
+
+```bash
+mvn spring-boot:run
+```
+
+La API queda disponible en `http://localhost:8080`.  
+El dashboard en `http://localhost:8080/` no requiere autenticación.  
+Las rutas `/api/**` requieren Basic Auth.
